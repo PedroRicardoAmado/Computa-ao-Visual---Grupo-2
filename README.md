@@ -8,10 +8,12 @@
 
 ## 2 - Blender
 
+Projeto no Blender e focado em modelação 3D no Blender, explorando diferentes técnicas de criação de objetos, aplicação de materiais, animação por keyframes e renderização.
+
 | Zonas | Objetos | Animação | Quem Modelou |
 |---|---|---|---|
   | Zona 1 | Cadeira | \- | Alex Stetsenko |
 | Zona 2 | Mesa | \- | João Castanheira |
 | Zona 3 | Copo, Faca e Prato | Saltar | Pedro Amado |
 
-Projeto no Blender e focado em modelação 3D no Blender, explorando diferentes técnicas de criação de objetos, aplicação de materiais, animação por keyframes e renderização.
+
