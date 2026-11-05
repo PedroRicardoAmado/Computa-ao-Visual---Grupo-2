@@ -1,0 +1,31 @@
+{
+  "limiar": 25,
+  "percentagem": 42,
+  "paragem": 15,
+  "detecao": "knn",
+  "zonas": [
+    [
+      0,
+      0,
+      213,
+      480
+    ],
+    [
+      213,
+      0,
+      213,
+      480
+    ],
+    [
+      426,
+      0,
+      214,
+      480
+    ]
+  ],
+  "tipos": [
+    "movimento",
+    "sentido",
+    "tamanho"
+  ]
+}
