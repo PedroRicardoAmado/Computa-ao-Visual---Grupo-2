@@ -10,9 +10,9 @@ from pathlib import Path
 
 # A pasta do zip (a que tem exemplos/, imgs/ e videos/), a partir deste ficheiro: o programa encontra as
 # imagens corra de onde correr, em Windows, macOS ou Linux.
-PASTA = Path("__file__").resolve().parent.parent
+PASTA = Path(__file__).resolve().parent.parent
 
-img = cv.imread(str(PASTA / "assets" / "0001.png"), cv.IMREAD_GRAYSCALE)
+img = cv.imread(str(PASTA / "assets" / "esplanada.png0001.png"), cv.IMREAD_GRAYSCALE)
 
 if img is None:
     raise SystemExit("imread devolveu None: verifica o caminho imgs/astronaut.png")

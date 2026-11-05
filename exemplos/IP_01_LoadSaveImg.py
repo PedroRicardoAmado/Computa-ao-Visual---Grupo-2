@@ -12,16 +12,15 @@ from pathlib import Path
 # imagens corra de onde correr, em Windows, macOS ou Linux.
 PASTA = Path(__file__).resolve().parent.parent
 
-img = cv.imread(str(PASTA / "imgs" / "astronaut.png"), cv.IMREAD_COLOR)
+img = cv.imread(str(PASTA / "assets" / "esplanada.png0001.png"), cv.IMREAD_GRAYSCALE)
 if img is None:
     raise SystemExit("imread devolveu None: verifica o caminho imgs/astronaut.png")
 
 cv.imshow("Imagem", img)
 
-cv.imwrite(str(PASTA / "imgs" / "astronaut_copia.png"), img)
+cv.imwrite(str(PASTA / "assets" / "esplanada.png0001.png"), img)
 
-gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-cv.imwrite(str(PASTA / "imgs" / "astronaut_cinzento.png"), gray)
+cv.imwrite(str(PASTA / "assets" / "esplanada.png0001.png"), img)
 
 cv.waitKey(0)          # espera por uma tecla
 cv.destroyAllWindows()
