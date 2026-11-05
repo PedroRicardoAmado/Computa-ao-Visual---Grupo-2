@@ -1,0 +1,4 @@
+PL04, Computação Visual. Descompactem esta pasta dentro da pasta do projeto do grupo, ao lado dos vossos ficheiros .py.
+00-versoes.py confirma o ambiente do guião PL01: correr com "uv run 00-versoes.py" e ver Python 3.12, OpenCV 5.0 e o NumPy.
+imgs/astronaut.png é a imagem de teste das secções 2 e 3; assets/zona1_cadeira/ são os 48 PNG da cadeira animada, com canal alfa, das secções 3, 4, 6 e 8.
+exemplos/ tem os 12 programas dos slides da aula, e videos/ o vídeo que o IP_1stStep04_VideoAcess.py lê. Correm-se com uv run, por exemplo: uv run exemplos/IP_00_PrintImg.py
