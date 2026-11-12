@@ -25,12 +25,14 @@ para explorar:
   (cv.addWeighted, dos slides da S05), etiquetas, uma barra de estado, o REC a piscar e a máscara
   em miniatura, no canto (tecla v). A evidência gravada continua a ser a imagem limpa da câmara;
 - no lugar dos cursores do OpenCV, um painel à direita com os três controlos desenhados e mexidos
-  com o rato (cv.setMouseCallback e as funções de desenho dos slides da S05).
+  com o rato (cv.setMouseCallback e as funções de desenho dos slides da S05);
+- caixas de movimento mais limpas: um fecho morfológico junta as manchas do mesmo corpo numa só
+  caixa, cada caixa desenha-se só pelos cantos, e a tecla c esconde-as.
 
 O ficheiro está por esta ordem: a configuração; as funções, por tema (config.json e PNG, deteção,
 desenho e reações, eventos e registo); o arranque; e o ciclo principal, com os passos numerados.
 
-Teclas: d deteção · f fundo outra vez · v máscara no canto · g gravar config.json · q sair
+Teclas: c caixas · d deteção · f fundo outra vez · v máscara no canto · g gravar · q sair
 """
 import json
 import pathlib
@@ -57,7 +59,8 @@ OMISSAO = {"limiar": 25, "percentagem": 2, "paragem": 15, "detecao": "mog2",
                      [426, 0, 214, 480]],
            "tipos": ["movimento", "sentido", "tamanho"]}
 LADO = 160                     # lado, em píxeis, a que se reduzem os PNG
-AREA_MINIMA = 500              # área mínima de uma caixa de movimento
+AREA_MINIMA = 1500             # área mínima de uma região com movimento, para ter caixa
+JUNTAR = 15                    # iterações do fecho que junta as manchas de um corpo
 APRENDIZAGEM = 0.001           # MOG2 e KNN aprendem devagar: quem pára continua marcado
 AQUECIMENTO = 60               # fotogramas, no arranque, a aprender o fundo sem acender zonas
 ELIPSE = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5, 5))
@@ -186,8 +189,14 @@ def zonas_com_movimento(mascara, zonas, percentagem):
 
 
 def caixas_do_movimento(mascara):
-    """As caixas (x, y, largura, altura) das manchas brancas com pelo menos AREA_MINIMA."""
-    contornos, _ = cv.findContours(mascara, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    """As caixas (x, y, largura, altura) das regiões com movimento com pelo menos AREA_MINIMA.
+
+    O MOG2 parte um corpo em várias manchas. Antes dos contornos, um fecho morfológico (dilatar e
+    depois erodir) junta as manchas a menos de uns 30 píxeis umas das outras: fica uma caixa por
+    região, e não uma por mancha. A máscara das zonas não muda: isto é só para as caixas.
+    """
+    juntas = cv.morphologyEx(mascara, cv.MORPH_CLOSE, None, iterations=JUNTAR)
+    contornos, _ = cv.findContours(juntas, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     return [cv.boundingRect(c) for c in contornos if cv.contourArea(c) >= AREA_MINIMA]
 
 
@@ -250,6 +259,16 @@ def desenha_zonas(imagem, zonas, tipos, acesas):
         etiqueta(imagem, f"{z + 1}  {tipos[z]}", x + 6, y + 6, cor)
 
 
+def desenha_caixas(imagem, caixas):
+    """Cada caixa de movimento só pelos cantos: marca a região sem tapar a imagem."""
+    for x, y, w, h in caixas:
+        c = max(10, min(w, h) // 5)                # o comprimento de cada canto
+        for px, py, dx, dy in ((x, y, 1, 1), (x + w, y, -1, 1),
+                               (x, y + h, 1, -1), (x + w, y + h, -1, -1)):
+            cv.line(imagem, (px, py), (px + dx * c, py), AMARELO, 2, cv.LINE_AA)
+            cv.line(imagem, (px, py), (px, py + dy * c), AMARELO, 2, cv.LINE_AA)
+
+
 def miniatura(imagem, mascara):
     """A máscara do movimento em pequeno, no canto de baixo à direita (tecla v)."""
     altura, largura = imagem.shape[:2]
@@ -275,9 +294,10 @@ def desenha_estado(imagem, a_gravar, detecao, progresso):
     else:
         cv.putText(imagem, f"detecao: {detecao}", (10, altura - 10),
                    cv.FONT_HERSHEY_SIMPLEX, 0.5, BRANCO, 1, cv.LINE_AA)
-    cv.putText(imagem, "d detecao  f fundo  v mascara  g gravar  q sair",
-               (largura - 345, altura - 10), cv.FONT_HERSHEY_SIMPLEX, 0.42, CINZENTO, 1,
-               cv.LINE_AA)
+    teclas = "c caixas  d detecao  f fundo  v mascara  g gravar  q sair"
+    (w, _), _ = cv.getTextSize(teclas, cv.FONT_HERSHEY_SIMPLEX, 0.4, 1)
+    cv.putText(imagem, teclas, (largura - w - 10, altura - 10), cv.FONT_HERSHEY_SIMPLEX, 0.4,
+               CINZENTO, 1, cv.LINE_AA)
     if a_gravar:
         x, y = largura - 104, 40
         cv.rectangle(imagem, (x, y), (largura - 10, y + 26), PRETO, -1)
@@ -464,6 +484,7 @@ anterior = None                                    # o fotograma anterior (difer
 subtrator = cria_subtrator(valores["detecao"])     # o modelo do fundo (MOG2 ou KNN)
 aquecer = AQUECIMENTO
 ver_mascara = False
+ver_caixas = True                                  # as caixas do movimento (tecla c)
 arrastar = None                                    # o controlo do painel a ser arrastado
 x_painel = 640                                     # onde começa o painel, na janela
 gravado_em = None                                  # quando se carregou em g pela última vez
@@ -517,8 +538,8 @@ try:
 
         # 5. O que se vê: as zonas acesas, as caixas, as animações, as molduras e o estado
         sombreia_zonas(fotograma, zonas, acesas)
-        for x, y, w, h in caixas:
-            cv.rectangle(fotograma, (x, y), (x + w, y + h), AMARELO, 2, cv.LINE_AA)
+        if ver_caixas:
+            desenha_caixas(fotograma, caixas)
         for z, zona in enumerate(zonas):
             if quietos[z] < valores["paragem"]:    # esta zona está a animar
                 objeto = sequencias[z][i[z] % len(sequencias[z])]
@@ -550,6 +571,8 @@ try:
             consola.log(f"[cyan]deteção: {valores['detecao']}[/], a aprender o fundo")
         if tecla == ord("v"):                      # a máscara no canto, ou não
             ver_mascara = not ver_mascara
+        if tecla == ord("c"):                      # as caixas do movimento, ou não
+            ver_caixas = not ver_caixas
 finally:
     # 7. Ao sair, com q, com Ctrl+C ou num erro: fechar os eventos, a câmara e as janelas
     for z, evento in enumerate(eventos):

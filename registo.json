@@ -8772,5 +8772,356 @@
       ]
     ],
     "objeto": "zona2_copo"
+  },
+  {
+    "zona": 1,
+    "inicio": "2026-11-12T23:11:08",
+    "duracao_s": 0.9,
+    "ficheiro": "evidencias/2026-11-12/zona1_2026-11-12_23-11-08.mp4",
+    "caixas": [
+      [
+        0,
+        0,
+        640,
+        480
+      ]
+    ],
+    "objeto": "zona1_cadeira"
+  },
+  {
+    "zona": 3,
+    "inicio": "2026-11-12T23:11:08",
+    "duracao_s": 0.7,
+    "ficheiro": "evidencias/2026-11-12/zona3_2026-11-12_23-11-08.mp4",
+    "caixas": [
+      [
+        0,
+        0,
+        640,
+        480
+      ]
+    ],
+    "objeto": "zona3_esplanada"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:11:08",
+    "duracao_s": 0.9,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-11-08.mp4",
+    "caixas": [
+      [
+        0,
+        0,
+        640,
+        480
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 3,
+    "inicio": "2026-11-12T23:12:13",
+    "duracao_s": 1.2,
+    "ficheiro": "evidencias/2026-11-12/zona3_2026-11-12_23-12-13.mp4",
+    "caixas": [
+      [
+        445,
+        128,
+        195,
+        352
+      ]
+    ],
+    "objeto": "zona3_esplanada"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:12:14",
+    "duracao_s": 1.4,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-12-14.mp4",
+    "caixas": [
+      [
+        200,
+        144,
+        415,
+        336
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:12:17",
+    "duracao_s": 2.6,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-12-17.mp4",
+    "caixas": [
+      [
+        337,
+        339,
+        222,
+        141
+      ],
+      [
+        46,
+        90,
+        334,
+        390
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 1,
+    "inicio": "2026-11-12T23:12:17",
+    "duracao_s": 2.2,
+    "ficheiro": "evidencias/2026-11-12/zona1_2026-11-12_23-12-17.mp4",
+    "caixas": [
+      [
+        0,
+        0,
+        640,
+        480
+      ]
+    ],
+    "objeto": "zona1_cadeira"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:12:23",
+    "duracao_s": 3.0,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-12-23.mp4",
+    "caixas": [
+      [
+        46,
+        155,
+        433,
+        325
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 3,
+    "inicio": "2026-11-12T23:12:28",
+    "duracao_s": 3.0,
+    "ficheiro": "evidencias/2026-11-12/zona3_2026-11-12_23-12-28.mp4",
+    "caixas": [
+      [
+        349,
+        177,
+        291,
+        303
+      ]
+    ],
+    "objeto": "zona3_esplanada"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:12:32",
+    "duracao_s": 2.5,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-12-32.mp4",
+    "caixas": [
+      [
+        148,
+        98,
+        492,
+        382
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:12:37",
+    "duracao_s": 4.5,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-12-37.mp4",
+    "caixas": [
+      [
+        209,
+        191,
+        384,
+        289
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 3,
+    "inicio": "2026-11-12T23:12:41",
+    "duracao_s": 2.6,
+    "ficheiro": "evidencias/2026-11-12/zona3_2026-11-12_23-12-41.mp4",
+    "caixas": [
+      [
+        165,
+        133,
+        475,
+        347
+      ]
+    ],
+    "objeto": "zona3_esplanada"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:12:44",
+    "duracao_s": 1.9,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-12-44.mp4",
+    "caixas": [
+      [
+        124,
+        125,
+        383,
+        355
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 1,
+    "inicio": "2026-11-12T23:12:46",
+    "duracao_s": 1.6,
+    "ficheiro": "evidencias/2026-11-12/zona1_2026-11-12_23-12-46.mp4",
+    "caixas": [
+      [
+        0,
+        142,
+        419,
+        338
+      ]
+    ],
+    "objeto": "zona1_cadeira"
+  },
+  {
+    "zona": 3,
+    "inicio": "2026-11-12T23:12:49",
+    "duracao_s": 2.4,
+    "ficheiro": "evidencias/2026-11-12/zona3_2026-11-12_23-12-49.mp4",
+    "caixas": [
+      [
+        248,
+        124,
+        392,
+        356
+      ]
+    ],
+    "objeto": "zona3_esplanada"
+  },
+  {
+    "zona": 3,
+    "inicio": "2026-11-12T23:12:55",
+    "duracao_s": 1.2,
+    "ficheiro": "evidencias/2026-11-12/zona3_2026-11-12_23-12-55.mp4",
+    "caixas": [
+      [
+        311,
+        136,
+        329,
+        344
+      ]
+    ],
+    "objeto": "zona3_esplanada"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:13:00",
+    "duracao_s": 1.6,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-13-00.mp4",
+    "caixas": [
+      [
+        104,
+        0,
+        536,
+        480
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:13:17",
+    "duracao_s": 1.7,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-13-17.mp4",
+    "caixas": [
+      [
+        105,
+        74,
+        437,
+        406
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 3,
+    "inicio": "2026-11-12T23:13:21",
+    "duracao_s": 3.6,
+    "ficheiro": "evidencias/2026-11-12/zona3_2026-11-12_23-13-21.mp4",
+    "caixas": [
+      [
+        193,
+        86,
+        447,
+        394
+      ]
+    ],
+    "objeto": "zona3_esplanada"
+  },
+  {
+    "zona": 3,
+    "inicio": "2026-11-12T23:17:09",
+    "duracao_s": 2.0,
+    "ficheiro": "evidencias/2026-11-12/zona3_2026-11-12_23-17-09.mp4",
+    "caixas": [
+      [
+        345,
+        156,
+        295,
+        324
+      ]
+    ],
+    "objeto": "zona3_esplanada"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:17:10",
+    "duracao_s": 2.3,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-17-10.mp4",
+    "caixas": [
+      [
+        238,
+        109,
+        402,
+        371
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 2,
+    "inicio": "2026-11-12T23:17:16",
+    "duracao_s": 3.4,
+    "ficheiro": "evidencias/2026-11-12/zona2_2026-11-12_23-17-16.mp4",
+    "caixas": [
+      [
+        91,
+        106,
+        462,
+        374
+      ]
+    ],
+    "objeto": "zona2_copo"
+  },
+  {
+    "zona": 3,
+    "inicio": "2026-11-12T23:17:18",
+    "duracao_s": 2.8,
+    "ficheiro": "evidencias/2026-11-12/zona3_2026-11-12_23-17-18.mp4",
+    "caixas": [
+      [
+        201,
+        86,
+        439,
+        394
+      ]
+    ],
+    "objeto": "zona3_esplanada"
   }
 ]
