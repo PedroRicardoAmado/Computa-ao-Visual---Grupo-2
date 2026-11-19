@@ -10,11 +10,11 @@ Consiste também na criação dum programa em python utilizando a biblioteca Ope
 
 Projeto no Blender e focado em modelação 3D no Blender, explorando diferentes técnicas de criação de objetos, aplicação de materiais, animação por keyframes e renderização.
 
-| Zonas | Objetos | Animação | Quem Modelou |
-|---|---|---|---|
-  | Zona 1 | Cadeira, Chão, Guarda-Sol | \- | Alex Stetsenko |
-| Zona 2 | Mesa, Garfo, Faca | \- | João Castanheira |
-| Zona 3 | Copo, Prato, Vaso | Saltar | Pedro Amado |
+| Zonas | Objetos  | Quem Modelou |
+|---|---|---|
+  | Zona 1 | Cadeira, Chão, Guarda-Sol | Alex Stetsenko |
+| Zona 2 | Mesa, Garfo, Faca | João Castanheira |
+| Zona 3 | Copo, Prato, Vaso | Pedro Amado |
 
 ## 3 OpenCV
 
