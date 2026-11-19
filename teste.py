@@ -24,15 +24,18 @@ para explorar:
 - uma interface mais legível: uma cor por zona, as zonas acesas pintadas por cima da câmara
   (cv.addWeighted, dos slides da S05), etiquetas, uma barra de estado, o REC a piscar e a máscara
   em miniatura, no canto (tecla v). A evidência gravada continua a ser a imagem limpa da câmara;
-- no lugar dos cursores do OpenCV, um painel à direita com os três controlos desenhados e mexidos
-  com o rato (cv.setMouseCallback e as funções de desenho dos slides da S05);
+- no lugar dos cursores do OpenCV, um painel à direita com os controlos do limiar e da zona,
+  desenhados e mexidos com o rato (cv.setMouseCallback e as funções de desenho dos slides da S05),
+  cada um com uma explicação curta; a paragem fica no config.json e o painel mostra-a;
+- a tecla p, que para a imagem (congela) e a põe outra vez a correr;
+- a imagem em espelho (cv.flip), para quem está à frente da câmara se ver como num espelho;
 - caixas de movimento mais limpas: um fecho morfológico junta as manchas do mesmo corpo numa só
   caixa, cada caixa desenha-se só pelos cantos, e a tecla c esconde-as.
 
 O ficheiro está por esta ordem: a configuração; as funções, por tema (config.json e PNG, deteção,
 desenho e reações, eventos e registo); o arranque; e o ciclo principal, com os passos numerados.
 
-Teclas: c caixas · d deteção · f fundo outra vez · v máscara no canto · g gravar · q sair
+Teclas: p parar · c caixas · d deteção · f fundo · v máscara no canto · g gravar · q sair
 """
 import json
 import pathlib
@@ -69,12 +72,14 @@ BRANCO, PRETO, CINZENTO = (255, 255, 255), (0, 0, 0), (190, 190, 190)
 CORES = [(255, 191, 0), (113, 204, 46), (94, 197, 255),    # uma cor por zona, em BGR: azul,
          (180, 105, 255), (0, 215, 255)]                   # verde, laranja, rosa e dourado
 JANELA = "esplanada"
+ESPELHO = True                 # vira a imagem na horizontal: quem está à frente vê-se num espelho
 PAINEL = 240                   # largura do painel dos controlos, à direita da imagem
 FUNDO_PAINEL, PISTA, ACENTO = (40, 34, 30), (80, 80, 80), (235, 170, 60)   # BGR
-CONTROLOS = [  # a chave em valores, o nome no painel, o mínimo, o máximo e a dica
-    ("limiar", "Limiar", 1, 100, "quanto um pixel muda"),
-    ("percentagem", "Zona", 0, 50, "parte da zona a mexer"),
-    ("paragem", "Paragem", 1, 60, None),    # a dica da paragem é o tempo em segundos
+CONTROLOS = [  # a chave em valores, o nome no painel, o mínimo, o máximo e a explicação
+    ("limiar", "Limiar", 1, 100,
+     ("quanto a imagem tem de mudar", "subir = menos falsos alertas")),
+    ("percentagem", "Zona", 0, 50,
+     ("quanto da zona tem de mexer", "subir = ignora gestos pequenos")),
 ]
 
 consola = Console(log_path=False)                # cada mensagem com a hora à esquerda
@@ -104,6 +109,9 @@ def carrega():
     for n, tipo in enumerate(valores["tipos"], start=1):
         if tipo not in TIPOS:
             sys.exit(f"{CONFIG}: o tipo da zona {n} tem de ser um de {TIPOS}, e está {tipo!r}.")
+    if valores["paragem"] < 1:
+        sys.exit(f"{CONFIG}: a paragem tem de ser pelo menos 1 fotograma, e está "
+                 f"{valores['paragem']}.")
     return valores
 
 
@@ -269,6 +277,22 @@ def desenha_caixas(imagem, caixas):
             cv.line(imagem, (px, py), (px, py + dy * c), AMARELO, 2, cv.LINE_AA)
 
 
+def desenha_pausa(imagem):
+    """O aviso de imagem parada: uma faixa escura a meio, com o símbolo de pausa."""
+    altura, largura = imagem.shape[:2]
+    y = altura // 2
+    sombreia(imagem, 0, y - 45, largura, 90, PRETO, 0.6)
+    (w, _), _ = cv.getTextSize("IMAGEM PARADA", cv.FONT_HERSHEY_SIMPLEX, 0.9, 2)
+    x = (largura - (w + 45)) // 2                  # o símbolo e o título, ao centro
+    cv.rectangle(imagem, (x, y - 26), (x + 10, y + 6), BRANCO, -1)       # o símbolo ||
+    cv.rectangle(imagem, (x + 20, y - 26), (x + 30, y + 6), BRANCO, -1)
+    cv.putText(imagem, "IMAGEM PARADA", (x + 45, y + 2), cv.FONT_HERSHEY_SIMPLEX, 0.9, BRANCO, 2,
+               cv.LINE_AA)
+    (w, _), _ = cv.getTextSize("carrega em p para continuar", cv.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+    cv.putText(imagem, "carrega em p para continuar", ((largura - w) // 2, y + 32),
+               cv.FONT_HERSHEY_SIMPLEX, 0.5, CINZENTO, 1, cv.LINE_AA)
+
+
 def miniatura(imagem, mascara):
     """A máscara do movimento em pequeno, no canto de baixo à direita (tecla v)."""
     altura, largura = imagem.shape[:2]
@@ -278,10 +302,11 @@ def miniatura(imagem, mascara):
     cv.rectangle(imagem, (x - 1, y - 1), (x + w, y + h), BRANCO, 1)
 
 
-def desenha_estado(imagem, a_gravar, detecao, progresso):
+def desenha_estado(imagem, a_gravar, detecao, progresso, parada=False):
     """A barra de baixo, com a deteção (ou o fundo a aprender) e as teclas, e o REC a piscar.
 
-    a_gravar é o número de eventos abertos; progresso vai de 0 a 1 enquanto o fundo se aprende.
+    a_gravar é o número de eventos abertos; progresso vai de 0 a 1 enquanto o fundo se aprende;
+    parada diz se a imagem está congelada (a tecla p passa a ser para continuar).
     """
     altura, largura = imagem.shape[:2]
     sombreia(imagem, 0, altura - 30, largura, 30, PRETO, 0.6)
@@ -294,7 +319,8 @@ def desenha_estado(imagem, a_gravar, detecao, progresso):
     else:
         cv.putText(imagem, f"detecao: {detecao}", (10, altura - 10),
                    cv.FONT_HERSHEY_SIMPLEX, 0.5, BRANCO, 1, cv.LINE_AA)
-    teclas = "c caixas  d detecao  f fundo  v mascara  g gravar  q sair"
+    teclas = ("p continuar" if parada else "p parar") + \
+        "  c caixas  d detecao  f fundo  v mascara  g gravar  q sair"
     (w, _), _ = cv.getTextSize(teclas, cv.FONT_HERSHEY_SIMPLEX, 0.4, 1)
     cv.putText(imagem, teclas, (largura - w - 10, altura - 10), cv.FONT_HERSHEY_SIMPLEX, 0.4,
                CINZENTO, 1, cv.LINE_AA)
@@ -311,11 +337,14 @@ def desenha_estado(imagem, a_gravar, detecao, progresso):
 
 def pista(n, x_painel):
     """Onde fica, na janela, a pista do controlo n: o x do início, o x do fim e o y."""
-    return x_painel + 20, x_painel + PAINEL - 20, 110 + 100 * n
+    return x_painel + 20, x_painel + PAINEL - 20, 110 + 110 * n
 
 
 def rato(evento, x, y, flags, param):
-    """Clicar ou arrastar na pista de um controlo muda o valor dele (cv.setMouseCallback)."""
+    """Clicar ou arrastar na pista de um controlo muda o valor dele.
+
+    É a função que o cv.setMouseCallback chama a cada evento do rato na janela.
+    """
     global arrastar
     if evento == cv.EVENT_LBUTTONDOWN:             # carregou: em que pista?
         for n in range(len(CONTROLOS)):
@@ -334,11 +363,11 @@ def rato(evento, x, y, flags, param):
 
 
 def desenha_painel(altura):
-    """O painel escuro dos controlos: o nome, o valor, a pista com a parte cheia e o botão."""
+    """O painel escuro: cada controlo com o nome, o valor, a pista e a explicação; e a paragem."""
     painel = np.full((altura, PAINEL, 3), FUNDO_PAINEL, np.uint8)
     cv.putText(painel, "AFINAR", (20, 40), cv.FONT_HERSHEY_SIMPLEX, 0.7, BRANCO, 2, cv.LINE_AA)
     cv.line(painel, (20, 56), (PAINEL - 20, 56), PISTA, 1)
-    for n, (chave, nome, minimo, maximo, dica) in enumerate(CONTROLOS):
+    for n, (chave, nome, minimo, maximo, explicacao) in enumerate(CONTROLOS):
         x0, x1, y = pista(n, 0)                    # dentro do painel, x_painel é 0
         valor = valores[chave]
         posicao = min(1.0, max(0.0, (valor - minimo) / (maximo - minimo)))
@@ -354,10 +383,23 @@ def desenha_painel(altura):
         raio = 11 if arrastar == n else 9          # o botão cresce enquanto se arrasta
         cv.circle(painel, (xv, y), raio, BRANCO, -1, cv.LINE_AA)
         cv.circle(painel, (xv, y), raio, ACENTO, 2, cv.LINE_AA)
-        if dica is None:
-            dica = f"{valor / fps:.1f} s sem movimento"
-        cv.putText(painel, dica, (x0, y + 30), cv.FONT_HERSHEY_SIMPLEX, 0.42, CINZENTO, 1,
+        for k, linha in enumerate(explicacao):     # o que faz, e o que muda ao subir
+            cv.putText(painel, linha, (x0, y + 30 + 18 * k), cv.FONT_HERSHEY_SIMPLEX, 0.42,
+                       CINZENTO, 1, cv.LINE_AA)
+
+    # a paragem não tem controlo (muda-se no config.json), mas mostra-se o valor e o que faz
+    x0, x1, y = pista(len(CONTROLOS), 0)
+    paragem = valores["paragem"]
+    cv.putText(painel, "Paragem", (x0, y - 22), cv.FONT_HERSHEY_SIMPLEX, 0.55, BRANCO, 1,
+               cv.LINE_AA)
+    (w, _), _ = cv.getTextSize(str(paragem), cv.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+    cv.putText(painel, str(paragem), (x1 - w, y - 22), cv.FONT_HERSHEY_SIMPLEX, 0.6, ACENTO, 2,
+               cv.LINE_AA)
+    for k, linha in enumerate((f"apaga com {paragem / fps:.1f} s sem mexer",
+                               "muda-se no config.json")):
+        cv.putText(painel, linha, (x0, y + 2 + 18 * k), cv.FONT_HERSHEY_SIMPLEX, 0.42, CINZENTO, 1,
                    cv.LINE_AA)
+
     cv.putText(painel, "arrasta com o rato", (20, altura - 70), cv.FONT_HERSHEY_SIMPLEX, 0.45,
                CINZENTO, 1, cv.LINE_AA)
     cv.putText(painel, "g grava no config.json", (20, altura - 45), cv.FONT_HERSHEY_SIMPLEX,
@@ -488,76 +530,102 @@ ver_caixas = True                                  # as caixas do movimento (tec
 arrastar = None                                    # o controlo do painel a ser arrastado
 x_painel = 640                                     # onde começa o painel, na janela
 gravado_em = None                                  # quando se carregou em g pela última vez
+congelado = False                                  # a imagem está parada (tecla p)
+ultimo = None                                      # a última imagem, para mostrar parada
 
 # --- O ciclo principal ---------------------------------------------------------------------------
 
 try:
     while True:
-        # 1. A imagem da câmara (os valores do painel mudam com o rato, na função rato)
-        ok, fotograma = camara.read()
-        if not ok:
-            break
-        altura, largura = fotograma.shape[:2]
-        confere(zonas, largura, altura)
-        x_painel = largura                         # o painel fica logo à direita da imagem
-        cru = carimba(fotograma)                   # a evidência: sem desenhos, com a hora
+        if not congelado:
+            # 1. A imagem da câmara (os valores do painel mudam com o rato, na função rato)
+            ok, fotograma = camara.read()
+            if not ok:
+                break
+            if ESPELHO:
+                fotograma = cv.flip(fotograma, 1)      # 1: vira na horizontal
+            altura, largura = fotograma.shape[:2]
+            confere(zonas, largura, altura)
+            x_painel = largura                         # o painel fica logo à direita da imagem
+            cru = carimba(fotograma)                   # a evidência: sem desenhos, com a hora
 
-        # 2. A máscara do movimento
-        if subtrator is None:
-            mascara, anterior = mascara_diferenca(fotograma, anterior, valores["limiar"])
-        else:
-            taxa = -1 if aquecer > 0 else APRENDIZAGEM     # no arranque aprende depressa
-            mascara = mascara_fundo(subtrator, fotograma, taxa, valores["limiar"])
-        if aquecer > 0:                            # a aprender o fundo: nenhuma zona acende
-            aquecer -= 1
-            mascara = None
-
-        # 3. As zonas acesas, as caixas e o sentido do movimento em cada zona
-        acesas, caixas = set(), []
-        fracao, centros = [0.0] * len(zonas), [None] * len(zonas)
-        if mascara is not None:
-            acesas, fracao, centros = zonas_com_movimento(mascara, zonas,
-                                                          valores["percentagem"])
-            caixas = caixas_do_movimento(mascara)
-        for z in acesas:
-            if onde[z] is not None and abs(centros[z][0] - onde[z][0]) > 3:
-                sentido[z] = 1 if centros[z][0] > onde[z][0] else -1
-            onde[z] = centros[z]
-
-        # 4. Os eventos: começam quando a zona acende e acabam quando ela sossega
-        for z, zona in enumerate(zonas):
-            quietos[z] = 0 if z in acesas else quietos[z] + 1
-            if z in acesas and eventos[z] is None:
-                dela = [c for c in caixas if toca(c, zona)]
-                eventos[z] = comeca(z, cru, dela, fps)
-            if eventos[z] is not None and eventos[z]["video"] is not None:
-                eventos[z]["video"].write(cru)
-            if eventos[z] is not None and quietos[z] >= valores["paragem"]:
-                acaba(z, eventos[z])
-                eventos[z], onde[z], sentido[z] = None, None, 1
-
-        # 5. O que se vê: as zonas acesas, as caixas, as animações, as molduras e o estado
-        sombreia_zonas(fotograma, zonas, acesas)
-        if ver_caixas:
-            desenha_caixas(fotograma, caixas)
-        for z, zona in enumerate(zonas):
-            if quietos[z] < valores["paragem"]:    # esta zona está a animar
-                objeto = sequencias[z][i[z] % len(sequencias[z])]
-                reage(fotograma, objeto, zona, tipos[z], onde[z], fracao[z])
-                i[z] += sentido[z] if tipos[z] == "sentido" else 1
+            # 2. A máscara do movimento
+            if subtrator is None:
+                mascara, anterior = mascara_diferenca(fotograma, anterior, valores["limiar"])
             else:
-                i[z] = 0                           # parada: volta ao princípio
-        desenha_zonas(fotograma, zonas, tipos, acesas)
-        if ver_mascara and mascara is not None:
-            miniatura(fotograma, mascara)
-        desenha_estado(fotograma, sum(e is not None for e in eventos), valores["detecao"],
-                       1 - aquecer / AQUECIMENTO)
-        cv.imshow(JANELA, np.hstack([fotograma, desenha_painel(altura)]))
+                taxa = -1 if aquecer > 0 else APRENDIZAGEM     # no arranque aprende depressa
+                mascara = mascara_fundo(subtrator, fotograma, taxa, valores["limiar"])
+            if aquecer > 0:                            # a aprender o fundo: nenhuma zona acende
+                aquecer -= 1
+                mascara = None
+
+            # 3. As zonas acesas, as caixas e o sentido do movimento em cada zona
+            acesas, caixas = set(), []
+            fracao, centros = [0.0] * len(zonas), [None] * len(zonas)
+            if mascara is not None:
+                acesas, fracao, centros = zonas_com_movimento(mascara, zonas,
+                                                              valores["percentagem"])
+                caixas = caixas_do_movimento(mascara)
+            for z in acesas:
+                if onde[z] is not None and abs(centros[z][0] - onde[z][0]) > 3:
+                    sentido[z] = 1 if centros[z][0] > onde[z][0] else -1
+                onde[z] = centros[z]
+
+            # 4. Os eventos: começam quando a zona acende e acabam quando ela sossega
+            for z, zona in enumerate(zonas):
+                quietos[z] = 0 if z in acesas else quietos[z] + 1
+                if z in acesas and eventos[z] is None:
+                    dela = [c for c in caixas if toca(c, zona)]
+                    eventos[z] = comeca(z, cru, dela, fps)
+                if eventos[z] is not None and eventos[z]["video"] is not None:
+                    eventos[z]["video"].write(cru)
+                if eventos[z] is not None and quietos[z] >= valores["paragem"]:
+                    acaba(z, eventos[z])
+                    eventos[z], onde[z], sentido[z] = None, None, 1
+
+            # 5. O que se vê: as zonas acesas, as caixas, as animações, as molduras e o estado
+            sombreia_zonas(fotograma, zonas, acesas)
+            if ver_caixas:
+                desenha_caixas(fotograma, caixas)
+            for z, zona in enumerate(zonas):
+                if quietos[z] < valores["paragem"]:    # esta zona está a animar
+                    objeto = sequencias[z][i[z] % len(sequencias[z])]
+                    reage(fotograma, objeto, zona, tipos[z], onde[z], fracao[z])
+                    i[z] += sentido[z] if tipos[z] == "sentido" else 1
+                else:
+                    i[z] = 0                           # parada: volta ao princípio
+            desenha_zonas(fotograma, zonas, tipos, acesas)
+            if ver_mascara and mascara is not None:
+                miniatura(fotograma, mascara)
+            ultimo = fotograma.copy()                  # é esta que fica, se a imagem parar
+            desenha_estado(fotograma, sum(e is not None for e in eventos), valores["detecao"],
+                           1 - aquecer / AQUECIMENTO)
+            ecra = fotograma
+        else:
+            # Imagem parada: a câmara continua a ser lida e deitada fora, para não atrasar, e
+            # mostra-se a última imagem com o aviso. Nada é detetado, animado ou gravado.
+            if not camara.grab():
+                break
+            ecra = ultimo.copy()
+            desenha_estado(ecra, 0, valores["detecao"], 1, parada=True)
+            desenha_pausa(ecra)
+        cv.imshow(JANELA, np.hstack([ecra, desenha_painel(altura)]))
 
         # 6. As teclas
         tecla = cv.waitKey(1) & 0xFF
         if tecla == ord("q"):
             break
+        if tecla == ord("p"):                      # parar a imagem, ou pô-la outra vez a correr
+            congelado = not congelado
+            if congelado:                          # os eventos abertos acabam aqui
+                for z, evento in enumerate(eventos):
+                    if evento is not None:
+                        acaba(z, evento)
+                        eventos[z], onde[z], sentido[z] = None, None, 1
+                consola.log("[magenta]imagem parada[/]")
+            else:
+                anterior = None                    # a diferença recomeça na imagem de agora
+                consola.log("[magenta]imagem outra vez a correr[/]")
         if tecla == ord("g"):
             CONFIG.write_text(json.dumps(valores, indent=2) + "\n", encoding="utf-8")
             consola.log("gravado em", CONFIG, valores)
